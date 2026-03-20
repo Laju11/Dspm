@@ -59,6 +59,41 @@ This app has backend + SQLite, so use Render (not GitHub Pages).
 
 If the exact subdomain is unavailable, Render will assign a close name and show the final live URL in the dashboard.
 
+## 6) Option B: Host on GitHub Pages (static)
+
+This option runs fully on GitHub Pages and uses Supabase as the cloud database.
+
+### A. Configure Supabase
+
+1. Create a new Supabase project.
+2. Open SQL Editor and run: `docs/supabase.sql`
+3. In Supabase, go to **Project Settings** → **API** and copy:
+	- Project URL
+	- Anon public key
+
+### B. Publish on GitHub Pages
+
+1. Push latest code to `main` (already done).
+2. In GitHub repo, open **Settings** → **Pages**.
+3. Under **Build and deployment**, choose:
+	- Source: **Deploy from a branch**
+	- Branch: **main**
+	- Folder: **/docs**
+4. Save and wait for deployment.
+
+Your public page will be:
+
+`https://laju11.github.io/Dspm/`
+
+On first open, enter your Supabase URL and anon key in the UI to connect database.
+
+### Pages app files
+
+- `docs/index.html`
+- `docs/styles.css`
+- `docs/app.js`
+- `docs/supabase.sql`
+
 ## API Endpoints
 
 - `GET /api/projects`

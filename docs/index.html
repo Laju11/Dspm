@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DSPM Project Tracker (GitHub Pages)</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>DSPM Project Tracker</h1>
+      <p class="note">
+        This GitHub Pages version is static and uses Supabase for database storage.
+        Website cloning is not run on GitHub Pages (no backend runtime).
+      </p>
+
+      <section class="card">
+        <h2>Supabase Config</h2>
+        <p class="small">Paste your project credentials once. Saved in browser localStorage.</p>
+        <form id="configForm" class="grid">
+          <label>
+            Supabase URL
+            <input id="supabaseUrl" placeholder="https://xxxx.supabase.co" required />
+          </label>
+          <label>
+            Supabase Anon Key
+            <input id="supabaseAnonKey" placeholder="eyJ..." required />
+          </label>
+          <button type="submit">Save & Connect</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Create Project</h2>
+        <form id="projectForm" class="grid">
+          <label>
+            Name
+            <input name="name" required placeholder="Project name" />
+          </label>
+          <label>
+            Description
+            <textarea name="description" rows="3" placeholder="Project details"></textarea>
+          </label>
+          <label>
+            Status
+            <select name="status">
+              <option value="planned">Planned</option>
+              <option value="in-progress">In Progress</option>
+              <option value="blocked">Blocked</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+          <label>
+            Progress (0-100)
+            <input name="progress" type="number" min="0" max="100" value="0" />
+          </label>
+          <label>
+            Source URL
+            <input name="source_url" type="url" placeholder="https://example.com" />
+          </label>
+          <label>
+            Repository URL
+            <input name="repository_url" type="url" placeholder="https://github.com/user/repo" />
+          </label>
+          <label>
+            Clone Notes (manual)
+            <input name="clone_notes" placeholder="Snapshot path or notes" />
+          </label>
+          <button type="submit">Save Project</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Projects</h2>
+        <div id="message" class="message"></div>
+        <div id="projects" class="projects"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
