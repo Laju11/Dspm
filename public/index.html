@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Manager + Website Cloner</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Project Manager + Website Cloner</h1>
+
+      <section class="card">
+        <h2>Create Project</h2>
+        <form id="projectForm" class="grid">
+          <label>
+            Project Name
+            <input name="name" required placeholder="Example: Bubble Site Clone" />
+          </label>
+
+          <label>
+            Description
+            <textarea name="description" rows="3" placeholder="What is this project about?"></textarea>
+          </label>
+
+          <label>
+            Status
+            <select name="status">
+              <option value="planned">Planned</option>
+              <option value="in-progress">In Progress</option>
+              <option value="blocked">Blocked</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+
+          <label>
+            Progress (0 - 100)
+            <input name="progress" type="number" min="0" max="100" value="0" />
+          </label>
+
+          <label>
+            Source URL
+            <input name="sourceUrl" type="url" placeholder="https://example.com" />
+          </label>
+
+          <label>
+            Repository URL
+            <input name="repositoryUrl" type="url" placeholder="https://github.com/you/repo" />
+          </label>
+
+          <button type="submit">Save Project</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Your Projects</h2>
+        <div id="message" class="message"></div>
+        <div id="projects" class="projects"></div>
+      </section>
+    </main>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

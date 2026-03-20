@@ -1,0 +1,4 @@
+node_modules/
+project_manager.db
+clones/
+.env
