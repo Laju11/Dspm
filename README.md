@@ -44,6 +44,21 @@ git remote add origin https://github.com/<your-username>/<your-repo>.git
 git push -u origin main
 ```
 
+## 5) Make it public (Render)
+
+This app has backend + SQLite, so use Render (not GitHub Pages).
+
+1. Go to `https://render.com` and sign in with GitHub.
+2. Click **New +** → **Blueprint**.
+3. Select repo: `Laju11/Dspm`.
+4. Render will detect `render.yaml` and create the web service.
+5. Click **Apply** / **Deploy**.
+6. After deploy finishes, open your public URL:
+
+`https://dspm-project-manager.onrender.com`
+
+If the exact subdomain is unavailable, Render will assign a close name and show the final live URL in the dashboard.
+
 ## API Endpoints
 
 - `GET /api/projects`

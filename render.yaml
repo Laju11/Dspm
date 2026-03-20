@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: dspm-project-manager
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/project_manager.db
+    disk:
+      name: sqlite-data
+      mountPath: /var/data
+      sizeGB: 1
