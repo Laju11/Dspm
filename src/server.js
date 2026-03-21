@@ -1,216 +1,251 @@
+require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
-const db = require('./db');
-const { cloneWebsite } = require('./cloneService');
+const bcrypt = require('bcryptjs');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
+const supabase = createClient(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_KEY || ''
+);
+
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '..', 'views'));
+
+app.use(
+  session({
+    store: new pgSession({
+      conString: process.env.DATABASE_URL || ''
+    }),
+    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-prod',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000
+    }
+  })
+);
+
+function requireAuth(req, res, next) {
+  if (!req.session.userId) {
+    return res.redirect('/login');
+  }
+  next();
+}
 
 function mapProject(row) {
   return {
     id: row.id,
     name: row.name,
-    description: row.description,
-    status: row.status,
-    progress: row.progress,
-    sourceUrl: row.source_url,
-    repositoryUrl: row.repository_url,
-    clonedPath: row.cloned_path,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
 
-app.get('/api/projects', (_, res) => {
-  db.all('SELECT * FROM projects ORDER BY id DESC', [], (err, rows) => {
-    if (err) {
-      return res.status(500).json({ message: 'Failed to load projects' });
+app.get('/', (req, res) => {
+  if (req.session.userId) {
+    return res.redirect('/dashboard');
+  }
+  res.redirect('/login');
+});
+
+app.get('/login', (req, res) => {
+  if (req.session.userId) {
+    return res.redirect('/dashboard');
+  }
+  res.render('login', { error: null });
+});
+
+app.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.render('login', { error: 'Email and password required' });
+  }
+
+  try {
+    const { data: users, error: queryError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (queryError || !users) {
+      return res.render('login', { error: 'Invalid email or password' });
     }
 
-    res.json(rows.map(mapProject));
+    const validPassword = await bcrypt.compare(password, users.password_hash);
+    if (!validPassword) {
+      return res.render('login', { error: 'Invalid email or password' });
+    }
+
+    req.session.userId = users.id;
+    req.session.userRole = users.role;
+    req.session.userEmail = users.email;
+    req.session.departmentId = users.department_id;
+
+    res.redirect('/dashboard');
+  } catch (error) {
+    console.error(error);
+    res.render('login', { error: 'Server error' });
+  }
+});
+
+app.get('/register', (req, res) => {
+  if (req.session.userId) {
+    return res.redirect('/dashboard');
+  }
+  res.render('register', { error: null });
+});
+
+app.post('/register', async (req, res) => {
+  const { email, password, passwordConfirm } = req.body;
+
+  if (!email || !password || !passwordConfirm) {
+    return res.render('register', { error: 'All fields required' });
+  }
+
+  if (password !== passwordConfirm) {
+    return res.render('register', { error: 'Passwords do not match' });
+  }
+
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    const { error: insertError } = await supabase.from('users').insert([
+      {
+        email,
+        password_hash: passwordHash,
+        role: 'user',
+        status: 'pending_approval'
+      }
+    ]);
+
+    if (insertError) {
+      return res.render('register', { error: 'Email already exists or server error' });
+    }
+
+    res.render('register', { error: 'Registration success! Awaiting admin approval.' });
+  } catch (error) {
+    console.error(error);
+    res.render('register', { error: 'Server error' });
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.send('Logout error');
+    }
+    res.redirect('/login');
   });
 });
 
-app.post('/api/projects', (req, res) => {
-  const { name, description, status, progress, sourceUrl, repositoryUrl } = req.body;
+app.get('/dashboard', requireAuth, async (req, res) => {
+  try {
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', req.session.userId)
+      .single();
 
-  if (!name) {
-    return res.status(400).json({ message: 'Project name is required' });
-  }
-
-  const now = new Date().toISOString();
-  const projectStatus = status || 'planned';
-  const projectProgress = Number.isInteger(progress) ? progress : Number(progress || 0);
-
-  db.run(
-    `INSERT INTO projects
-      (name, description, status, progress, source_url, repository_url, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      name,
-      description || '',
-      projectStatus,
-      Math.max(0, Math.min(100, projectProgress)),
-      sourceUrl || '',
-      repositoryUrl || '',
-      now,
-      now
-    ],
-    function onInsert(err) {
-      if (err) {
-        return res.status(500).json({ message: 'Failed to create project' });
-      }
-
-      db.get('SELECT * FROM projects WHERE id = ?', [this.lastID], (getErr, row) => {
-        if (getErr) {
-          return res.status(500).json({ message: 'Project created but failed to fetch it' });
-        }
-
-        return res.status(201).json(mapProject(row));
-      });
+    if (!user) {
+      return res.redirect('/logout');
     }
-  );
+
+    if (user.role === 'admin') {
+      return res.redirect('/admin');
+    } else if (user.role === 'department_head') {
+      return res.redirect('/department-head');
+    } else {
+      return res.redirect('/project-manager');
+    }
+  } catch (error) {
+    console.error(error);
+    res.send('Error loading dashboard');
+  }
 });
 
-app.put('/api/projects/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const { name, description, status, progress, sourceUrl, repositoryUrl, clonedPath } = req.body;
-
-  if (!id) {
-    return res.status(400).json({ message: 'Invalid project ID' });
+app.get('/admin', requireAuth, async (req, res) => {
+  if (req.session.userRole !== 'admin') {
+    return res.status(403).send('Unauthorized');
   }
 
-  if (!name) {
-    return res.status(400).json({ message: 'Project name is required' });
+  try {
+    const { data: users } = await supabase
+      .from('users')
+      .select('*, departments(name)');
+
+    const { data: departments } = await supabase
+      .from('departments')
+      .select('*');
+
+    res.render('admin-dashboard', { users, departments, userEmail: req.session.userEmail });
+  } catch (error) {
+    console.error(error);
+    res.send('Error loading admin dashboard');
   }
-
-  const now = new Date().toISOString();
-  const projectProgress = Number.isInteger(progress) ? progress : Number(progress || 0);
-
-  db.run(
-    `UPDATE projects
-      SET name = ?,
-          description = ?,
-          status = ?,
-          progress = ?,
-          source_url = ?,
-          repository_url = ?,
-          cloned_path = ?,
-          updated_at = ?
-      WHERE id = ?`,
-    [
-      name,
-      description || '',
-      status || 'planned',
-      Math.max(0, Math.min(100, projectProgress)),
-      sourceUrl || '',
-      repositoryUrl || '',
-      clonedPath || '',
-      now,
-      id
-    ],
-    function onUpdate(err) {
-      if (err) {
-        return res.status(500).json({ message: 'Failed to update project' });
-      }
-
-      if (this.changes === 0) {
-        return res.status(404).json({ message: 'Project not found' });
-      }
-
-      db.get('SELECT * FROM projects WHERE id = ?', [id], (getErr, row) => {
-        if (getErr) {
-          return res.status(500).json({ message: 'Project updated but failed to fetch it' });
-        }
-
-        return res.json(mapProject(row));
-      });
-    }
-  );
 });
 
-app.delete('/api/projects/:id', (req, res) => {
-  const id = Number(req.params.id);
-
-  if (!id) {
-    return res.status(400).json({ message: 'Invalid project ID' });
+app.get('/department-head', requireAuth, async (req, res) => {
+  if (req.session.userRole !== 'department_head') {
+    return res.status(403).send('Unauthorized');
   }
 
-  db.run('DELETE FROM projects WHERE id = ?', [id], function onDelete(err) {
-    if (err) {
-      return res.status(500).json({ message: 'Failed to delete project' });
-    }
+  try {
+    const { data: department } = await supabase
+      .from('departments')
+      .select('*')
+      .eq('id', req.session.departmentId)
+      .single();
 
-    if (this.changes === 0) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
+    const { data: initiatives } = await supabase
+      .from('initiatives')
+      .select('*')
+      .eq('department_id', req.session.departmentId);
 
-    return res.status(204).send();
-  });
+    res.render('department-head-dashboard', {
+      department,
+      initiatives,
+      userEmail: req.session.userEmail
+    });
+  } catch (error) {
+    console.error(error);
+    res.send('Error loading department dashboard');
+  }
 });
 
-app.post('/api/projects/:id/clone', async (req, res) => {
-  const id = Number(req.params.id);
-  const { url } = req.body;
-
-  if (!id) {
-    return res.status(400).json({ message: 'Invalid project ID' });
+app.get('/project-manager', requireAuth, async (req, res) => {
+  if (req.session.userRole !== 'project_manager') {
+    return res.status(403).send('Unauthorized');
   }
 
-  if (!url) {
-    return res.status(400).json({ message: 'Website URL is required' });
+  try {
+    const { data: initiatives } = await supabase
+      .from('initiatives')
+      .select('*, departments(name)');
+
+    const { data: departments } = await supabase
+      .from('departments')
+      .select('*');
+
+    res.render('project-manager-dashboard', {
+      initiatives,
+      departments,
+      userEmail: req.session.userEmail
+    });
+  } catch (error) {
+    console.error(error);
+    res.send('Error loading project manager dashboard');
   }
-
-  db.get('SELECT * FROM projects WHERE id = ?', [id], async (err, row) => {
-    if (err) {
-      return res.status(500).json({ message: 'Failed to load project' });
-    }
-
-    if (!row) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    try {
-      const clonedPath = await cloneWebsite({
-        url,
-        projectName: row.name
-      });
-
-      const now = new Date().toISOString();
-
-      db.run(
-        'UPDATE projects SET source_url = ?, cloned_path = ?, updated_at = ? WHERE id = ?',
-        [url, clonedPath, now, id],
-        function onCloneUpdate(updateErr) {
-          if (updateErr) {
-            return res.status(500).json({ message: 'Website cloned but project failed to update' });
-          }
-
-          db.get('SELECT * FROM projects WHERE id = ?', [id], (fetchErr, updatedRow) => {
-            if (fetchErr) {
-              return res.status(500).json({ message: 'Clone completed but failed to fetch project' });
-            }
-
-            return res.json(mapProject(updatedRow));
-          });
-        }
-      );
-    } catch (cloneErr) {
-      return res.status(500).json({
-        message: 'Clone failed. Some modern websites block full static cloning.',
-        error: cloneErr.message
-      });
-    }
-  });
-});
-
-app.get('*', (_, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`Project manager running at http://localhost:${PORT}`);
+  console.log(`DSPM running at http://localhost:${PORT}`);
 });

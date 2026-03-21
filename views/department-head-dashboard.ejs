@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Head Dashboard - DSPM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="navbar">
+        <h1>DSPM - <%= department?.name || 'Department' %> Dashboard</h1>
+        <div>
+            <span><%= userEmail %></span>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="card">
+            <h2>Create Initiative</h2>
+            <form method="POST" action="/api/initiatives" class="form-grid">
+                <label>
+                    Initiative Name
+                    <input type="text" name="name" required />
+                </label>
+                <label>
+                    Owner
+                    <input type="text" name="owner" />
+                </label>
+                <label>
+                    Status
+                    <select name="status">
+                        <option value="planned">Planned</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="blocked">Blocked</option>
+                        <option value="done">Done</option>
+                    </select>
+                </label>
+                <label>
+                    Progress (%)
+                    <input type="number" name="progress" min="0" max="100" value="0" />
+                </label>
+                <label>
+                    Description
+                    <textarea name="description" rows="3"></textarea>
+                </label>
+                <button type="submit">Create Initiative</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Department Initiatives</h2>
+            <% if (initiatives && initiatives.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% initiatives.forEach(init => { %>
+                            <tr>
+                                <td><%= init.name %></td>
+                                <td><%= init.owner || 'N/A' %></td>
+                                <td><%= init.status %></td>
+                                <td><%= init.progress %>%</td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p>No initiatives yet.</p>
+            <% } %>
+        </section>
+    </div>
+</body>
+</html>

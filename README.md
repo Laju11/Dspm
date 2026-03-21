@@ -1,103 +1,107 @@
-# Project Manager + Website Cloner
+# DSPM - Department & Initiative Project Manager
 
-A simple Node.js app that lets you:
+A role-based project and initiative tracking system with backend authentication, Supabase PostgreSQL, and per-department dashboards.
 
-- Track projects with a SQLite database
-- Manage project status and progress in a web UI
-- Clone (static snapshot) websites into a local `clones/` directory
+## Features
 
-## 1) Install
+- **Role-Based Access**: Admin, Department Head, Project Manager roles
+- **Session-Based Auth**: Express server with secure session management
+- **Departments**: Organize initiatives by department
+- **Initiatives**: Track projects with status and progress
+- **Cloud Database**: PostgreSQL via Supabase
+- **Responsive UI**: Modern web interface
 
-```bash
-cd project-manager
-npm install
+## Architecture
+
+- **Backend**: Express.js + EJS templates + Supabase client
+- **Database**: PostgreSQL (Supabase)
+- **Deployment**: Render (free tier available)
+- **Auth**: Password hashing with bcryptjs
+
+## Local Setup
+
+1. Clone the repo
+2. Copy `.env.example` to `.env` and fill in your Supabase credentials
+3. Run `npm install`
+4. Start: `npm start` (visits `http://localhost:5000`)
+
+## Supabase Setup
+
+1. Create a free Supabase project
+2. Go to SQL Editor → run the SQL from `schema.sql`
+3. Get your credentials:
+     - Project Settings → API
+     - Copy **Project URL** and **Service Role Key** (not anon key)
+4. Set environment variables in `.env`
+
+## Environment Variables
+
+```
+NODE_ENV=production
+PORT=5000
+SESSION_SECRET=your-session-secret-key
+
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key
+DATABASE_URL=postgresql://postgres:password@db.supabase.co:5432/postgres
 ```
 
-## 2) Run
+## Deployment on Render
 
-```bash
-npm start
+1. Push code to GitHub
+2. Go to render.com → **New +** → **Web Service**
+3. Connect your GitHub repo
+4. Set environment variables in Render dashboard
+5. Deploy
+
+Live URL: `https://dspm-backend.onrender.com` (or your custom domain)
+
+## Routes
+
+- GET `/` → Redirects to login/dashboard
+- GET `/login` → Login page
+- POST `/login` → Authenticate user
+- GET `/register` → Registration page
+- POST `/register` → Create user account
+- GET `/logout` → Logout and clear session
+- GET `/dashboard` → Route to role-based dashboard
+- GET `/admin` → Admin dashboard (manage users, departments)
+- GET `/department-head` → Department head dashboard (manage initiatives)
+- GET `/project-manager` → Project manager dashboard (view all initiatives)
+
+## User Roles
+
+- **Admin**: Full access (users, departments, initiatives)
+- **Department Head**: Create/edit initiatives within their department
+- **Project Manager**: View all initiatives across all departments
+- **User**: Pending approval (no access until admin approves)
+
+## File Structure
+
+```
+project-manager/
+├── src/
+│   └── server.js          # Express app
+├── views/
+│   ├── login.ejs
+│   ├── register.ejs
+│   ├── admin-dashboard.ejs
+│   ├── department-head-dashboard.ejs
+│   └── project-manager-dashboard.ejs
+├── public/
+│   ├── styles.css
+│   └── ...
+├── schema.sql             # Supabase schema
+├── .env.example           # Environment template
+├── render.yaml            # Render config
+└── package.json
 ```
 
-Open: http://localhost:4000
+## Next Steps
 
-## 3) Use with your target website
-
-Create a project in the UI, then paste your source URL (for example):
-
-`https://czarwallace.bubbleapps.lo/version-test`
-
-Click **Clone Website** to create a local snapshot.
-
-> Note: Some dynamic platforms (including many Bubble pages) may not fully clone as static files due to runtime rendering and access rules.
-
-## 4) Push to GitHub
-
-From the `project-manager` folder:
-
-```bash
-git init
-git add .
-git commit -m "Initial project manager with cloning"
-git branch -M main
-git remote add origin https://github.com/<your-username>/<your-repo>.git
-git push -u origin main
-```
-
-## 5) Make it public (Render)
-
-This app has backend + SQLite, so use Render (not GitHub Pages).
-
-1. Go to `https://render.com` and sign in with GitHub.
-2. Click **New +** → **Blueprint**.
-3. Select repo: `Laju11/Dspm`.
-4. Render will detect `render.yaml` and create the web service.
-5. Click **Apply** / **Deploy**.
-6. After deploy finishes, open your public URL:
-
-`https://dspm-project-manager.onrender.com`
-
-If the exact subdomain is unavailable, Render will assign a close name and show the final live URL in the dashboard.
-
-## 6) Option B: Host on GitHub Pages (static)
-
-This option runs fully on GitHub Pages and uses Supabase as the cloud database.
-
-### A. Configure Supabase
-
-1. Create a new Supabase project.
-2. Open SQL Editor and run: `docs/supabase.sql`
-3. In Supabase, go to **Project Settings** → **API** and copy:
-	- Project URL
-	- Anon public key
-
-### B. Publish on GitHub Pages
-
-1. Push latest code to `main` (already done).
-2. In GitHub repo, open **Settings** → **Pages**.
-3. Under **Build and deployment**, choose:
-	- Source: **Deploy from a branch**
-	- Branch: **main**
-	- Folder: **/docs**
-4. Save and wait for deployment.
-
-Your public page will be:
-
-`https://laju11.github.io/Dspm/`
-
-On first open, enter your Supabase URL and anon key in the UI to connect database.
-
-### Pages app files
-
-- `docs/index.html`
-- `docs/styles.css`
-- `docs/app.js`
-- `docs/supabase.sql`
-
-## API Endpoints
-
-- `GET /api/projects`
-- `POST /api/projects`
-- `PUT /api/projects/:id`
-- `DELETE /api/projects/:id`
-- `POST /api/projects/:id/clone`
+1. Set up Supabase project
+2. Run `schema.sql` in Supabase SQL Editor
+3. Configure `.env` with your credentials
+4. Deploy on Render OR run locally with `npm start`
+5. Create first admin account via registration (then approve in Supabase)
+6. Add departments and invite users

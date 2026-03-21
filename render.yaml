@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: dspm-project-manager
+    name: dspm-backend
     runtime: node
     plan: free
     buildCommand: npm install
@@ -8,9 +8,13 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DB_PATH
-        value: /var/data/project_manager.db
-    disk:
-      name: sqlite-data
-      mountPath: /var/data
-      sizeGB: 1
+      - key: PORT
+        value: 5000
+      - key: SESSION_SECRET
+        value: ${SESSION_SECRET}
+      - key: SUPABASE_URL
+        value: ${SUPABASE_URL}
+      - key: SUPABASE_SERVICE_KEY
+        value: ${SUPABASE_SERVICE_KEY}
+      - key: DATABASE_URL
+        value: ${DATABASE_URL}

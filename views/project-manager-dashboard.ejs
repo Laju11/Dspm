@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Manager Dashboard - DSPM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="navbar">
+        <h1>DSPM - Project Manager Dashboard</h1>
+        <div>
+            <span><%= userEmail %></span>
+            <a href="/logout">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <section class="card">
+            <h2>All Initiatives Across Departments</h2>
+            <% if (initiatives && initiatives.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% initiatives.forEach(init => { %>
+                            <tr>
+                                <td><%= init.name %></td>
+                                <td><%= init.departments?.name || 'Unknown' %></td>
+                                <td><%= init.owner || 'N/A' %></td>
+                                <td><%= init.status %></td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: <%= init.progress %>%"></div>
+                                    </div>
+                                    <%= init.progress %>%
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p>No initiatives yet.</p>
+            <% } %>
+        </section>
+    </div>
+</body>
+</html>

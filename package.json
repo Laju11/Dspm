@@ -1,7 +1,7 @@
 {
-  "name": "project-manager-cloner",
-  "version": "1.0.0",
-  "description": "Project tracking dashboard with website cloning",
+  "name": "dspm-backend",
+  "version": "2.0.0",
+  "description": "DSPM - Department & Initiative Project Manager with backend auth",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -9,8 +9,11 @@
   },
   "dependencies": {
     "express": "^4.21.2",
-    "sqlite3": "^5.1.7",
-    "website-scraper": "^5.3.1"
+    "express-session": "^1.17.3",
+    "connect-pg-simple": "^9.0.1",
+    "@supabase/supabase-js": "^2.39.3",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
