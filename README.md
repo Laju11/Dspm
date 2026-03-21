@@ -40,11 +40,14 @@ A role-based project and initiative tracking system with backend authentication,
 NODE_ENV=production
 PORT=5000
 SESSION_SECRET=your-session-secret-key
+USE_PG_SESSION=true
 
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your-service-role-key
-DATABASE_URL=postgresql://postgres:password@db.supabase.co:5432/postgres
+DATABASE_URL=postgresql://postgres.your-project-ref:password@aws-0-your-region.pooler.supabase.com:6543/postgres?sslmode=require
 ```
+
+Note: if `db.<project-ref>.supabase.co` fails on your network (IPv6 DNS issue), use the **Pooler** connection string from Supabase Settings → Database.
 
 ## Deployment on Render
 

@@ -20,20 +20,29 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
 
+const usePgSessionStore =
+  process.env.USE_PG_SESSION === 'true' || process.env.NODE_ENV === 'production';
+
+const sessionOptions = {
+  secret: process.env.SESSION_SECRET || 'dev-secret-change-in-prod',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000
+  }
+};
+
+if (usePgSessionStore) {
+  sessionOptions.store = new pgSession({
+    conString: process.env.DATABASE_URL || '',
+    createTableIfMissing: false
+  });
+}
+
 app.use(
-  session({
-    store: new pgSession({
-      conString: process.env.DATABASE_URL || ''
-    }),
-    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-prod',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000
-    }
-  })
+  session(sessionOptions)
 );
 
 function requireAuth(req, res, next) {
