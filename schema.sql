@@ -1,3 +1,12 @@
+-- Create departments table first (users references it)
+create table if not exists public.departments (
+  id bigint generated always as identity primary key,
+  name text not null unique,
+  description text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- Create users table
 create table if not exists public.users (
   id uuid primary key default gen_random_uuid(),
@@ -6,15 +15,6 @@ create table if not exists public.users (
   role text not null check (role in ('admin', 'department_head', 'project_manager', 'user')),
   department_id bigint references public.departments(id),
   status text not null default 'pending_approval' check (status in ('pending_approval', 'approved', 'rejected')),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
--- Create departments table
-create table if not exists public.departments (
-  id bigint generated always as identity primary key,
-  name text not null unique,
-  description text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

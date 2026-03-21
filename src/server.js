@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const express = require('express');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
@@ -42,11 +42,6 @@ function requireAuth(req, res, next) {
   }
   next();
 }
-
-function mapProject(row) {
-  return {
-    id: row.id,
-    name: row.name,
 
 app.get('/', (req, res) => {
   if (req.session.userId) {
