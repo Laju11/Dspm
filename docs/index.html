@@ -31,6 +31,73 @@
       </section>
 
       <section class="card">
+        <h2>Create Department</h2>
+        <form id="departmentForm" class="grid">
+          <label>
+            Department Name
+            <input name="name" required placeholder="e.g. Product" />
+          </label>
+          <label>
+            Department Lead
+            <input name="lead" placeholder="e.g. Jane Doe" />
+          </label>
+          <label>
+            Description
+            <textarea name="description" rows="2" placeholder="Department focus"></textarea>
+          </label>
+          <button type="submit">Save Department</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Departments</h2>
+        <div id="departments" class="projects"></div>
+      </section>
+
+      <section class="card">
+        <h2>Create Initiative</h2>
+        <form id="initiativeForm" class="grid">
+          <label>
+            Initiative Name
+            <input name="name" required placeholder="e.g. Q2 Launch" />
+          </label>
+          <label>
+            Department
+            <select id="initiativeDepartmentId" name="department_id" required>
+              <option value="">Select department</option>
+            </select>
+          </label>
+          <label>
+            Owner
+            <input name="owner" placeholder="Initiative owner" />
+          </label>
+          <label>
+            Status
+            <select name="status">
+              <option value="planned">Planned</option>
+              <option value="in-progress">In Progress</option>
+              <option value="blocked">Blocked</option>
+              <option value="done">Done</option>
+            </select>
+          </label>
+          <label>
+            Progress (0-100)
+            <input name="progress" type="number" min="0" max="100" value="0" />
+          </label>
+          <label>
+            Description
+            <textarea name="description" rows="2" placeholder="Initiative details"></textarea>
+          </label>
+          <button type="submit">Save Initiative</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Initiatives</h2>
+        <div id="initiatives" class="projects"></div>
+      </section>
+
+      <section class="card">
         <h2>Create Project</h2>
         <form id="projectForm" class="grid">
           <label>
