@@ -1,0 +1,16 @@
+<div class="navbar">
+    <a href="/" class="navbar-brand">DSPM</a>
+    <nav class="navbar-links">
+        <a href="/" class="<%= currentPage === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+        <a href="/departments" class="<%= currentPage === 'departments' ? 'active' : '' %>">Departments</a>
+        <a href="/initiatives" class="<%= currentPage === 'initiatives' ? 'active' : '' %>">Initiatives</a>
+        <% if (userRole === 'admin' || userRole === 'department_head') { %>
+            <a href="/initiatives/new" class="<%= currentPage === 'initiative-new' ? 'active' : '' %>">+ New Initiative</a>
+        <% } %>
+    </nav>
+    <div class="navbar-user">
+        <span class="user-badge"><%= userRole %></span>
+        <span><%= userEmail %></span>
+        <a href="/logout" class="btn-logout">Logout</a>
+    </div>
+</div>

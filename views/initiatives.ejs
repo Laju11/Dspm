@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Initiatives - DSPM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <%- include('_navbar', { currentPage: 'initiatives', userRole, userEmail }) %>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>All Initiatives</h2>
+            <% if (userRole === 'admin' || userRole === 'department_head') { %>
+                <a href="/initiatives/new" class="btn-primary">+ New Initiative</a>
+            <% } %>
+        </div>
+
+        <!-- Filters -->
+        <div class="card filter-bar">
+            <form method="GET" action="/initiatives" class="filter-form">
+                <label>
+                    Department
+                    <select name="department">
+                        <option value="">All Departments</option>
+                        <% departments.forEach(dept => { %>
+                            <option value="<%= dept.id %>" <%= String(selectedDept) === String(dept.id) ? 'selected' : '' %>>
+                                <%= dept.name %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </label>
+                <label>
+                    Status
+                    <select name="status">
+                        <option value="">All Statuses</option>
+                        <option value="planned"    <%= selectedStatus === 'planned'     ? 'selected' : '' %>>Planned</option>
+                        <option value="in-progress" <%= selectedStatus === 'in-progress' ? 'selected' : '' %>>In Progress</option>
+                        <option value="blocked"    <%= selectedStatus === 'blocked'     ? 'selected' : '' %>>Blocked</option>
+                        <option value="done"       <%= selectedStatus === 'done'        ? 'selected' : '' %>>Done</option>
+                    </select>
+                </label>
+                <button type="submit">Filter</button>
+                <a href="/initiatives" class="btn-secondary">Clear</a>
+            </form>
+        </div>
+
+        <section class="card">
+            <% if (initiatives && initiatives.length > 0) { %>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Initiative</th>
+                            <th>Department</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th>Progress</th>
+                            <% if (userRole === 'admin' || userRole === 'department_head') { %>
+                                <th>Actions</th>
+                            <% } %>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% initiatives.forEach(init => { %>
+                            <tr>
+                                <td>
+                                    <strong><%= init.name %></strong>
+                                    <% if (init.description) { %>
+                                        <div class="text-muted small"><%= init.description %></div>
+                                    <% } %>
+                                </td>
+                                <td><%= init.departments?.name || 'N/A' %></td>
+                                <td><%= init.owner || '—' %></td>
+                                <td><span class="badge badge-<%= init.status %>"><%= init.status %></span></td>
+                                <td>
+                                    <div class="progress-wrap">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width:<%= init.progress %>%"></div>
+                                        </div>
+                                        <span><%= init.progress %>%</span>
+                                    </div>
+                                </td>
+                                <% if (userRole === 'admin' || userRole === 'department_head') { %>
+                                    <td>
+                                        <a href="/initiatives/<%= init.id %>/update" class="btn-action">Update</a>
+                                    </td>
+                                <% } %>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <p class="empty-state">No initiatives found. <a href="/initiatives/new">Create one?</a></p>
+            <% } %>
+        </section>
+    </div>
+</body>
+</html>

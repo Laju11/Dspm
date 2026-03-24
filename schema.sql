@@ -73,6 +73,28 @@ create policy "Department heads can update their initiatives"
   using (auth.jwt() ->> 'role' in ('department_head', 'admin'))
   with check (auth.jwt() ->> 'role' in ('department_head', 'admin'));
 
+-- Create initiative_updates table (progress history)
+create table if not exists public.initiative_updates (
+  id bigint generated always as identity primary key,
+  initiative_id bigint not null references public.initiatives(id) on delete cascade,
+  status text not null,
+  progress integer not null,
+  note text,
+  updated_by uuid references public.users(id),
+  created_at timestamptz not null default now()
+);
+
+alter table public.initiative_updates enable row level security;
+
+create policy "All can view updates"
+  on public.initiative_updates for select
+  using (true);
+
+create policy "Auth users can insert updates"
+  on public.initiative_updates for insert
+  to authenticated
+  with check (true);
+
 -- Create sessions table for express-session
 create table if not exists "session" (
   "sid" varchar not null collate "default",

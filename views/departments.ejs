@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departments - DSPM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <%- include('_navbar', { currentPage: 'departments', userRole, userEmail }) %>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>Departments</h2>
+        </div>
+
+        <% if (message) { %>
+            <div class="alert alert-<%= messageType %>"><%= message %></div>
+        <% } %>
+
+        <% if (userRole === 'admin') { %>
+        <section class="card">
+            <h3>Create Department</h3>
+            <form method="POST" action="/departments" class="form-grid">
+                <label>
+                    Department Name
+                    <input type="text" name="name" required placeholder="e.g. Finance" />
+                </label>
+                <label>
+                    Description
+                    <input type="text" name="description" placeholder="Brief description" />
+                </label>
+                <button type="submit">Create Department</button>
+            </form>
+        </section>
+        <% } %>
+
+        <section class="card">
+            <% if (departments && departments.length > 0) { %>
+                <div class="dept-grid">
+                    <% departments.forEach(dept => { %>
+                        <div class="dept-card">
+                            <div class="dept-card-header">
+                                <span class="dept-icon">🏢</span>
+                                <h3><%= dept.name %></h3>
+                            </div>
+                            <p class="text-muted"><%= dept.description || 'No description' %></p>
+                            <div class="dept-meta">
+                                <span><strong><%= dept.initiativeCount || 0 %></strong> initiatives</span>
+                                <span class="text-muted small">Created <%= new Date(dept.created_at).toLocaleDateString() %></span>
+                            </div>
+                            <a href="/initiatives?department=<%= dept.id %>" class="btn-secondary small">View Initiatives</a>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p class="empty-state">No departments yet. Create one above.</p>
+            <% } %>
+        </section>
+    </div>
+</body>
+</html>

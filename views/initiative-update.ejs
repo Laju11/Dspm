@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Initiative - DSPM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <%- include('_navbar', { currentPage: 'initiatives', userRole, userEmail }) %>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>Update Initiative</h2>
+            <a href="/initiatives" class="btn-secondary">← Back to Initiatives</a>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+        <% if (success) { %>
+            <div class="alert alert-success"><%= success %></div>
+        <% } %>
+
+        <div class="update-layout">
+            <!-- Current status summary -->
+            <aside class="card initiative-summary">
+                <h3><%= initiative.name %></h3>
+                <p class="text-muted"><%= initiative.description || 'No description' %></p>
+                <dl class="summary-list">
+                    <dt>Department</dt>
+                    <dd><%= initiative.departments?.name || '—' %></dd>
+                    <dt>Owner</dt>
+                    <dd><%= initiative.owner || '—' %></dd>
+                    <dt>Created</dt>
+                    <dd><%= new Date(initiative.created_at).toLocaleDateString() %></dd>
+                </dl>
+                <div class="progress-wrap large">
+                    <div class="progress-bar large">
+                        <div class="progress-fill" id="previewFill" style="width:<%= initiative.progress %>%"></div>
+                    </div>
+                    <span id="previewPct"><%= initiative.progress %>%</span>
+                </div>
+            </aside>
+
+            <!-- Update form -->
+            <section class="card form-page">
+                <h3>Post an Update</h3>
+                <form method="POST" action="/initiatives/<%= initiative.id %>/update" class="form-stack">
+                    <div class="form-row">
+                        <label>
+                            Status
+                            <select name="status">
+                                <option value="planned"     <%= initiative.status === 'planned'     ? 'selected' : '' %>>Planned</option>
+                                <option value="in-progress" <%= initiative.status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
+                                <option value="blocked"     <%= initiative.status === 'blocked'     ? 'selected' : '' %>>Blocked</option>
+                                <option value="done"        <%= initiative.status === 'done'        ? 'selected' : '' %>>Done</option>
+                            </select>
+                        </label>
+                        <label>
+                            Progress (%)
+                            <input type="number" name="progress" id="progressInput"
+                                min="0" max="100" value="<%= initiative.progress %>"
+                                oninput="updatePreview(this.value)" />
+                        </label>
+                    </div>
+
+                    <label>
+                        Owner
+                        <input type="text" name="owner" value="<%= initiative.owner || '' %>" placeholder="Initiative owner" />
+                    </label>
+
+                    <label>
+                        Update Notes
+                        <textarea name="update_note" rows="4" placeholder="Describe what has changed, blockers, or next steps..."></textarea>
+                    </label>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Save Update</button>
+                        <a href="/initiatives" class="btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- Update history -->
+        <section class="card">
+            <h3>Update History</h3>
+            <% if (updates && updates.length > 0) { %>
+                <div class="update-timeline">
+                    <% updates.forEach(u => { %>
+                        <div class="timeline-item">
+                            <div class="timeline-dot badge-<%= u.status %>"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-header">
+                                    <span class="badge badge-<%= u.status %>"><%= u.status %></span>
+                                    <strong><%= u.progress %>%</strong>
+                                    <span class="text-muted small"><%= new Date(u.created_at).toLocaleString() %></span>
+                                </div>
+                                <% if (u.note) { %>
+                                    <p><%= u.note %></p>
+                                <% } %>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p class="empty-state">No updates posted yet.</p>
+            <% } %>
+        </section>
+    </div>
+
+    <script>
+        function updatePreview(val) {
+            document.getElementById('previewFill').style.width = val + '%';
+            document.getElementById('previewPct').textContent = val + '%';
+        }
+    </script>
+</body>
+</html>

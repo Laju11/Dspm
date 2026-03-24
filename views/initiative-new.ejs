@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Initiative - DSPM</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <%- include('_navbar', { currentPage: 'initiative-new', userRole, userEmail }) %>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>Create New Initiative</h2>
+            <a href="/initiatives" class="btn-secondary">← Back to Initiatives</a>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+
+        <section class="card form-page">
+            <form method="POST" action="/initiatives" class="form-stack">
+                <div class="form-row">
+                    <label>
+                        Initiative Name *
+                        <input type="text" name="name" required placeholder="e.g. Digital Transformation 2026" value="<%= prefill.name || '' %>" />
+                    </label>
+                    <label>
+                        Owner
+                        <input type="text" name="owner" placeholder="e.g. Jane Doe" value="<%= prefill.owner || '' %>" />
+                    </label>
+                </div>
+
+                <label>
+                    Department *
+                    <select name="department_id" required>
+                        <option value="">Select a department</option>
+                        <% departments.forEach(dept => { %>
+                            <option value="<%= dept.id %>" <%= String(prefill.department_id) === String(dept.id) ? 'selected' : '' %>>
+                                <%= dept.name %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </label>
+
+                <div class="form-row">
+                    <label>
+                        Status
+                        <select name="status">
+                            <option value="planned"     <%= prefill.status === 'planned'     ? 'selected' : '' %>>Planned</option>
+                            <option value="in-progress" <%= prefill.status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
+                            <option value="blocked"     <%= prefill.status === 'blocked'     ? 'selected' : '' %>>Blocked</option>
+                            <option value="done"        <%= prefill.status === 'done'        ? 'selected' : '' %>>Done</option>
+                        </select>
+                    </label>
+                    <label>
+                        Initial Progress (%)
+                        <input type="number" name="progress" min="0" max="100" value="<%= prefill.progress ?? 0 %>" />
+                    </label>
+                </div>
+
+                <label>
+                    Description
+                    <textarea name="description" rows="4" placeholder="What is this initiative about? What outcomes are expected?"><%= prefill.description || '' %></textarea>
+                </label>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Create Initiative</button>
+                    <a href="/initiatives" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </section>
+    </div>
+</body>
+</html>
